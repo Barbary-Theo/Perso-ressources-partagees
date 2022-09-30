@@ -12,6 +12,7 @@ class Server:
         self.path = str(pathlib.Path().resolve()) + "/" + path
 
     def mkfifo(self):
+        self.path = str(pathlib.Path().resolve()) + "/" + self.path
         try:
             system.remove(self.path)
             system.mkfifo(self.path, 0o0600)
@@ -23,34 +24,34 @@ def prog():
     server = Server()
     server.path = "tube_test.fifo"
     server.mkfifo()
+    path = server.path
 
-    pid = system.fork()
+    try:
 
-    if pid < 0:
-        print(to_red(" -> Error to fork"))
+        pid = system.fork()
 
-    elif pid == 0:
+        if pid < 0:
+            print(to_red(" -> Error to fork"))
+        elif pid == 0:
 
-        try:
-            pipeline = open(server.path, "w")
-            pipeline.write("je suis le fiston fréro")
+            pipeline = open(server.path, "r")
+
+            for line in pipeline:
+                print(" -> ", line)
+
+            print("done child")
             pipeline.close()
 
-            print("done 2")
-        except Exception as e:
-            print(to_red(e.__str__()))
+        else:
 
-    else:
-        try:
             pipeline = open(server.path, "w")
             pipeline.write("je suis le daron fréro")
             pipeline.close()
 
-            print("done 1")
-        except Exception as e:
-            print(to_red(e.__str__()))
+            print("done father")
 
-    print("oui")
+    except Exception as e:
+        print(to_red(e.__str__()))
 
 
 if __name__ == "__main__":
